@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Laser Engraving Preset System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #e8e8e8;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 { color: #ffa500; margin-bottom: 6px; font-size: 28px; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+  .subtitle { color: #aab; margin-bottom: 14px; font-size: 14px; }
+  .core-principle-header {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(90deg, rgba(155,89,182,0.28), rgba(255,165,0,0.16));
+    border: 1px solid #9b59b6; border-radius: 10px; padding: 12px 18px; margin-bottom: 20px;
+    color: #f3e9ff; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;
+  }
+  .core-principle-header .bolt { font-size: 22px; line-height: 1; }
+
+  .controls {
+    background: #232947; padding: 20px; border-radius: 12px; margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex; gap: 16px; flex-wrap: wrap; align-items: end;
+  }
+  .control-group { flex: 1; min-width: 200px; }
+  label {
+    display: block; color: #ffa500; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  select, input, textarea, button {
+    width: 100%; padding: 10px 12px; border-radius: 6px;
+    border: 1px solid #3a4170; background: #1a1f3a; color: #fff; font-size: 14px;
+  }
+  select:focus, input:focus, textarea:focus { outline: 2px solid #ffa500; border-color: #ffa500; }
+  textarea { font-family: inherit; min-height: 150px; resize: vertical; line-height: 1.5; }
+  button { background: #ffa500; color: #1a1a2e; font-weight: 700; cursor: pointer; border: none; transition: background 0.2s; }
+  button:hover { background: #ffb733; }
+  button.secondary { background: #3a4170; color: #fff; }
+  button.secondary:hover { background: #4a5180; }
+  button.danger { background: #c0392b; color: #fff; }
+  button.danger:hover { background: #d04a3a; }
+
+  .info-panel {
+    background: #2a3050; border-left: 4px solid #ffa500; padding: 16px 20px;
+    border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: #cdd;
+  }
+  .info-panel h3 { color: #ffa500; margin-bottom: 10px; font-size: 15px; text-align: center; }
+  .info-panel strong { color: #ffd27f; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
+  @media (max-width: 760px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+  .info-block { background: #1a1f3a; border-radius: 6px; padding: 12px 14px; }
+  .info-block .ib-title { color: #ffa500; font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 6px; }
+  .info-block .ib-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+  .info-block .ib-row .k { color: #aab; } .info-block .ib-row .v { color: #fff; font-family: 'Courier New', monospace; font-weight: 600; }
+
+  .wood-card {
+    background: #232947; border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #ffa500;
+  }
+  .wood-card.custom { border-left-color: #4a90e2; }
+  .wood-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .wood-name { font-size: 22px; color: #ffa500; font-weight: 700; }
+  .wood-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { background: #3a4170; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .badge.custom { background: #4a90e2; } .badge.calculated { background: #27ae60; }
+
+  .characteristics {
+    background: #1a1f3a; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    font-size: 13px; color: #bcd; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
+  }
+  .characteristics div strong { color: #ffa500; }
+
+  .fill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .fill-grid { grid-template-columns: 1fr; } }
+
+  .fill-strategy { background: #1a1f3a; border-left: 4px solid #f39c12; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #cdd; line-height: 1.55; }
+  .fill-strategy .fs-tag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 8px; color: #1a1a2e; margin-right: 8px; vertical-align: middle; }
+  .fill-strategy strong { color: #ffd27f; }
+
+  .preset-box { background: #1a1f3a; border-radius: 8px; padding: 16px; border-top: 3px solid #555; }
+  .preset-box.standard { border-top-color: #27ae60; }
+  .preset-box.darker { border-top-color: #e74c3c; }
+  .preset-title { font-weight: 700; margin-bottom: 12px; font-size: 14px; color: #fff; display: flex; justify-content: space-between; }
+  .preset-title .tag { font-size: 10px; padding: 2px 8px; border-radius: 8px; }
+  .preset-title .tag.green { background: #27ae60; color: #fff; }
+  .preset-title .tag.red { background: #e74c3c; color: #fff; }
+  .setting-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+  .setting-row .k { color: #aab; } .setting-row .v { color: #fff; font-weight: 600; font-family: 'Courier New', monospace; }
+
+  .edge-panel { background: #1a1f3a; border-radius: 8px; padding: 16px; border-top: 3px solid #3498db; margin-bottom: 4px; }
+  .edge-panel .ep-title { font-weight: 700; font-size: 14px; color: #fff; margin-bottom: 12px; display: flex; justify-content: space-between; }
+  .edge-panel .ep-title .tag { font-size: 10px; padding: 2px 8px; border-radius: 8px; background: #3498db; color: #fff; }
+  .edge-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .edge-sub { background: #232947; border-radius: 6px; padding: 12px; }
+  .edge-sub .es-label { font-size: 11px; color: #ffa500; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .edge-sub .es-pass { font-size: 11px; color: #7fc4ff; font-weight: 700; margin: 6px 0 2px; }
+
+  .notes { margin-top: 14px; padding: 10px 14px; background: #2a3050; border-radius: 6px; font-size: 12px; color: #bcd; font-style: italic; }
+
+  /* Workflow steps */
+  .workflow-step { margin-bottom: 18px; }
+  .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: #ffa500; color: #1a1a2e; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .step-num.vec { background: #9b59b6; color: #fff; }
+  .step-num.edge { background: #3498db; color: #fff; }
+  .step-title { font-weight: 700; font-size: 15px; color: #fff; }
+  .step-title .step-sub { font-size: 11px; color: #889; font-weight: 400; }
+  .step-divider { height: 1px; background: linear-gradient(90deg, #3a4170, transparent); margin: 0 0 14px; }
+
+  /* Tooltip */
+  .tip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #3a4170; color: #cdd; font-size: 11px; font-weight: 700; text-transform: none; cursor: help; }
+  .tip .tip-body { display: none; position: absolute; bottom: 135%; left: 50%; transform: translateX(-50%); width: 260px; max-width: 70vw; background: #0f1326; border: 1px solid #4a5180; border-radius: 8px; padding: 11px 13px; font-size: 12px; color: #cdd; line-height: 1.55; z-index: 60; box-shadow: 0 8px 24px rgba(0,0,0,0.55); font-weight: 400; text-align: left; white-space: normal; }
+  .tip .tip-body strong { color: #ffd27f; }
+  .tip:hover .tip-body, .tip:focus .tip-body { display: block; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #232947; border-radius: 12px; padding: 28px; max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+  .modal h2 { color: #ffa500; margin-bottom: 18px; font-size: 22px; }
+  .modal-row { margin-bottom: 14px; }
+  .modal-row label { margin-bottom: 4px; }
+  .modal small { color: #889; font-size: 11px; display: block; margin-top: 4px; }
+  .modal-buttons { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .edit-block { background: #1a1f3a; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .edit-block .eb-title { font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .three label, .two label { font-size: 11px; }
+  .calc-preview { background: #1a1f3a; border-left: 4px solid #27ae60; padding: 14px; border-radius: 6px; margin-top: 16px; font-size: 12px; color: #cdd; }
+  .calc-preview strong { color: #27ae60; }
+
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Laser Engraving Preset System</h1>
+  <p class="subtitle">Pick a wood. Each card is laid out in engraving order — <strong>1) Fill</strong>, then <strong>2) Vector</strong> (letters &amp; visible elements), then <strong>3) Edge &amp; lines</strong> last. Add a wood (auto-calculated from similar species), edit, or remove.</p>
+
+  <div class="core-principle-header"><span class="bolt">⚡</span><span>CORE PRINCIPLE: Control ENERGY + EDGE BEHAVIOR — not just power</span></div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="woodSelect">Select Wood Type</label>
+      <select id="woodSelect" onchange="renderWoods()">
+        <option value="" selected>— Select a wood —</option>
+        <option value="ALL">Show All Woods</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label for="wattSelect">Laser Wattage (CO2)</label>
+      <select id="wattSelect" onchange="changeWattage()">
+        <option value="40">40 W</option>
+        <option value="60">60 W</option>
+        <option value="80" selected>80 W (default)</option>
+        <option value="100">100 W</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <button onclick="openAddModal()">+ Add New Wood Type</button>
+    </div>
+    <div class="control-group">
+      <button class="secondary" onclick="openVectorModal()" style="background:#5b3a78;">⚡ Vector Guide</button>
+    </div>
+    <div class="control-group" id="restoreWrap" style="display:none;">
+      <button class="secondary" onclick="restoreRemoved()">Restore Removed Woods</button>
+    </div>
+  </div>
+
+  <div id="woodList"></div>
+
+  <!-- Vector Engraving modal (not wood-specific) -->
+  <div class="modal-overlay" id="vectorModal">
+    <div class="modal">
+      <h2 style="color:#c39bd3;">Vector Engraving — Letters &amp; Visible Elements</h2>
+      <p style="color:#aab; margin-bottom:14px; font-size:13px;">Not wood-specific — these control how <strong>visible</strong> a stroke is, not how deep. In your workflow this is <strong>step 2</strong>: after the fill, before the final edge &amp; lines.</p>
+      <div id="vectorEngravingBody"></div>
+      <div class="modal-buttons">
+        <button class="secondary" onclick="closeVectorModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Wood Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 id="editModalTitle">Edit Wood Settings</h2>
+    <p style="color:#aab; margin-bottom:16px; font-size:13px;">Adjust fill and edge values. Global presets (Standard/Bold line, Advanced Pass 2, interval 0.100, LPI 254, passes 1, kerf 0.00) are shared and unchanged. Numbers are the <strong>80&nbsp;W baseline</strong>; other wattages are auto-scaled on the cards.</p>
+
+    <div class="edit-block" style="border-top:3px solid #27ae60;">
+      <div class="eb-title">Standard Fill</div>
+      <div class="three">
+        <div><label>Speed</label><input type="number" id="editStdFs"></div>
+        <div><label>Max %</label><input type="number" id="editStdFmax"></div>
+        <div><label>Min %</label><input type="number" id="editStdFmin"></div>
+      </div>
+    </div>
+
+    <div class="edit-block" style="border-top:3px solid #e74c3c;">
+      <div class="eb-title">Dark Fill</div>
+      <div class="three">
+        <div><label>Speed</label><input type="number" id="editDrkFs"></div>
+        <div><label>Max %</label><input type="number" id="editDrkFmax"></div>
+        <div><label>Min %</label><input type="number" id="editDrkFmin"></div>
+      </div>
+    </div>
+
+    <div class="edit-block" style="border-top:3px solid #3498db;">
+      <div class="eb-title">Edge Sharpening Power (speed fixed at 450 mm/s)</div>
+      <div class="two">
+        <div><label>Max %</label><input type="number" id="editEmax"></div>
+        <div><label>Min %</label><input type="number" id="editEmin"></div>
+      </div>
+      <small>Also used as Advanced Edge Pass 1. Pass 2 is the shared 500 / 16 / 14.</small>
+    </div>
+
+    <div class="modal-buttons">
+      <button onclick="saveEdit()">Save Changes</button>
+      <button class="secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="secondary" id="resetBtn" onclick="resetWoodToDefault()" style="display:none;">Reset to Default</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Wood Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>Add New Wood Type</h2>
+    <p style="color:#aab; margin-bottom:16px; font-size:13px;">Enter the wood's characteristics. Fill and edge settings are auto-calculated by averaging your existing presets for similar species.</p>
+
+    <div class="modal-row">
+      <label for="newName">Wood Name *</label>
+      <input type="text" id="newName" placeholder="e.g., Bloodwood">
+    </div>
+    <div class="modal-row">
+      <label for="newJanka">Janka Hardness (lbf) *</label>
+      <input type="number" id="newJanka" placeholder="e.g., 2900" oninput="updatePreview()">
+      <small>Higher = harder, needs more energy. Reference: Pine ~380, Walnut ~1010, Oak ~1290, Hard Maple ~1450, Hickory ~1820, Ipe ~3680</small>
+    </div>
+    <div class="modal-row">
+      <label for="newGrain">Grain Type *</label>
+      <select id="newGrain" oninput="updatePreview()">
+        <option value="closed">Closed/Tight Grain (maple, cherry, walnut)</option>
+        <option value="open">Open/Porous Grain (oak, ash, mahogany, sapele)</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label for="newOil">Oil/Resin Content *</label>
+      <select id="newOil" oninput="updatePreview()">
+        <option value="low">Low (most woods)</option>
+        <option value="medium">Medium (cherry, walnut)</option>
+        <option value="high">High (teak, rosewood, ipe)</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label for="newTone">Wood Tone (color) *</label>
+      <select id="newTone">
+        <option value="light">Light (oak, maple, ash, poplar) — use a darker fill</option>
+        <option value="medium" selected>Medium (sapele, mahogany, teak) — moderate fill</option>
+        <option value="dark">Dark (walnut, wenge, ipe) — use a lighter fill</option>
+      </select>
+      <small>Drives the fill strategy: lighter woods take a darker fill, darker woods take a lighter fill.</small>
+    </div>
+    <div class="modal-row">
+      <label for="newCategory">Category</label>
+      <select id="newCategory">
+        <option value="custom">Custom</option>
+        <option value="domestic">Common Domestic</option>
+        <option value="exotic">Exotic</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label for="newNotes">Notes (optional)</label>
+      <input type="text" id="newNotes" placeholder="e.g., Very dense, watch for surface scorching">
+    </div>
+
+    <div id="calcPreview" class="calc-preview" style="display:none;"></div>
+
+    <div class="modal-buttons">
+      <button onclick="addNewWood()">Calculate &amp; Add</button>
+      <button class="secondary" onclick="closeAddModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notes Modal -->
+<div class="modal-overlay" id="notesModal">
+  <div class="modal">
+    <h2 id="notesModalTitle">Notes</h2>
+    <p style="color:#aab; margin-bottom:14px; font-size:13px;">Tips, observations, or warnings for this wood. Saved with your settings.</p>
+    <div class="modal-row">
+      <textarea id="notesText" placeholder="e.g., Oily surface — wipe with alcohol before engraving; watch for scorching on fine detail."></textarea>
+    </div>
+    <div class="modal-buttons">
+      <button onclick="saveNotes()">Save Notes</button>
+      <button class="secondary" onclick="closeNotesModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// GLOBAL CONSTANTS (shared across all woods)
+// =========================================================================
+const CONST = {
+  interval: '0.100', lpi: 254, passes: 1, kerf: '0.00',
+  stdLine:  { s: 400, max: 20, min: 18 },
+  boldLine: { s: 375, max: 22, min: 20 },
+  edgeSpeed: 450,
+  advPass2: { s: 500, max: 16, min: 14 },
+  // Vector engraving for visible-but-shallow elements (letters, icons, line art).
+  // NOT wood-specific — same for every wood. Controls stroke visibility, not depth.
+  vector: {
+    light:    { s: 425, max: 24, min: 22 },  // primary: visible but shallow
+    lighter:  { s: 450, max: 22, min: 20 },  // subtler, for very dark fills
+    stronger: { s: 400, max: 26, min: 24 },  // distance readability / thin fonts
+  },
+};
+
+// =========================================================================
+// WOOD TONE -> FILL STRATEGY
+// Contrast comes from CONTROL, not depth:
+//   light woods take a DARKER fill (darkness makes the contrast),
+//   dark woods take a LIGHTER fill (over-burning flattens them; let the
+//   edge + lettering passes carry the contrast instead).
+// =========================================================================
+const TONE = {
+  "White Oak":"light","Santos Mahogany":"medium","Sapele":"medium","Monkey Pod":"medium",
+  "Afromosia":"medium","Walnut":"dark","Mahogany (True/Standard)":"medium",
+  "Unknown Hardwood (Baseline)":"medium","Red Oak":"light","Hard Maple":"light",
+  "Soft Maple":"light","Cherry":"light","Alder":"light","White Ash":"light","Birch":"light",
+  "Beech":"light","Hickory / Pecan":"light","Poplar":"light","Teak":"medium","Wenge":"dark",
+  "Padauk":"medium","Purpleheart":"dark","Zebrawood":"medium","Bubinga":"medium",
+  "Jatoba (Brazilian Cherry)":"medium","Ipe":"dark"
+};
+function getTone(w) { return (w && (w.tone || TONE[w.name])) || 'medium'; }
+const TONE_STRATEGY = {
+  light:  { label: 'Light', color: '#e74c3c',
+    text: 'Light wood &rarr; favor the <strong>Dark Fill</strong>. On a light background, darkness is what creates the contrast.' },
+  medium: { label: 'Medium', color: '#f39c12',
+    text: 'Medium wood &rarr; <strong>moderate</strong>. The Standard Fill is usually right; reserve the Dark Fill for fine detail that needs extra punch.' },
+  dark:   { label: 'Dark', color: '#27ae60',
+    text: 'Dark wood &rarr; go <strong>lighter</strong>. Use the Standard Fill (or less) &mdash; over-burning flattens it. Let the edge &amp; lettering passes carry the contrast.' },
+};
+
+// =========================================================================
+// WATTAGE COMPENSATION
+// All base presets are calibrated for an 80 W CO2 tube. Engraving result
+// scales with (power% x tube wattage) / speed, so to hold the result
+// constant we scale every power% by (80 / wattage). Speeds stay the same.
+//   40 W -> x2.00   60 W -> x1.33   80 W -> x1.00   100 W -> x0.80
+// =========================================================================
+let selectedWattage = 80;
+function loadWattage() {
+  // Always default to the 80 W reference on load, regardless of last session.
+  selectedWattage = 80;
+}
+function powerFactor() { return 80 / selectedWattage; }
+function adjP(p) { return Math.max(1, Math.min(100, Math.round(p * powerFactor()))); }
+function changeWattage() {
+  selectedWattage = parseInt(document.getElementById('wattSelect').value) || 80;
+  localStorage.setItem('selectedWattage', selectedWattage);
+  renderVectorEngraving();
+  renderWoods();
+}
+
+// =========================================================================
+// WOOD DATABASE — fill presets + edge power + characteristics
+// edge = {emax, emin} at 450 mm/s; also used as Advanced Edge Pass 1
+// =========================================================================
+const WOODS = [
+  // ---------- CURRENT / PROVEN ----------
+  { name: "White Oak", category: "domestic", janka: 1350, grain: "open", oil: "low",
+    notes: "Open-grain baseline. Your everyday/clean fill is 290/30 @ 0.100; drop to the Dark Fill (275/32) when you want stronger contrast and can accept more visible grain striping. Open grain burns unevenly (soft grain darker, hard grain resists) — past ~270/32 the striping gets exaggerated.",
+    std: { fs: 290, fmax: 30, fmin: 30 }, drk: { fs: 275, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Santos Mahogany", category: "exotic", janka: 2200, grain: "open", oil: "low",
+    notes: "Runs hotter than Sapele/Oak; needs slightly more energy.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 275, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Sapele", category: "exotic", janka: 1410, grain: "open", oil: "low",
+    notes: "Strong-grain wood — good candidate for grain-direction testing.",
+    std: { fs: 290, fmax: 30, fmin: 30 }, drk: { fs: 275, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Monkey Pod", category: "exotic", janka: 900, grain: "open", oil: "low",
+    notes: "Easy to overdrive — open pores can blotch, so the cleanup pass is kept lighter.",
+    std: { fs: 290, fmax: 30, fmin: 30 }, drk: { fs: 285, fmax: 30, fmin: 30 }, edge: { emax: 18, emin: 16 } },
+  { name: "Afromosia", category: "exotic", janka: 1560, grain: "closed", oil: "low",
+    notes: "Dense, tight-grain hardwood.",
+    std: { fs: 290, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Walnut", category: "domestic", janka: 1010, grain: "closed", oil: "medium",
+    notes: "Darkens easily — keep clean to avoid muddy results.",
+    std: { fs: 300, fmax: 28, fmin: 28 }, drk: { fs: 290, fmax: 30, fmin: 30 }, edge: { emax: 20, emin: 18 } },
+  { name: "Mahogany (True/Standard)", category: "exotic", janka: 800, grain: "open", oil: "low",
+    notes: "Softer than Sapele — don't overdrive; uses a lighter cleanup pass.",
+    std: { fs: 310, fmax: 28, fmin: 28 }, drk: { fs: 300, fmax: 30, fmin: 30 }, edge: { emax: 18, emin: 16 } },
+  { name: "Unknown Hardwood (Baseline)", category: "domestic", janka: 1200, grain: "open", oil: "low",
+    notes: "Safe starting point when species is unidentified.",
+    std: { fs: 290, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+
+  // ---------- COMMON DOMESTIC ----------
+  { name: "Red Oak", category: "domestic", janka: 1290, grain: "open", oil: "low",
+    notes: "Very similar to White Oak — open grain, predictable.",
+    std: { fs: 295, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Hard Maple", category: "domestic", janka: 1450, grain: "closed", oil: "low",
+    notes: "Tight-grain; often needs more energy for contrast.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 275, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Soft Maple", category: "domestic", janka: 950, grain: "closed", oil: "low",
+    notes: "More forgiving than Hard Maple.",
+    std: { fs: 300, fmax: 28, fmin: 28 }, drk: { fs: 290, fmax: 30, fmin: 30 }, edge: { emax: 20, emin: 18 } },
+  { name: "Cherry", category: "domestic", janka: 950, grain: "closed", oil: "medium",
+    notes: "Naturally darkens with light scorch; easy to engrave.",
+    std: { fs: 305, fmax: 28, fmin: 28 }, drk: { fs: 295, fmax: 30, fmin: 30 }, edge: { emax: 20, emin: 18 } },
+  { name: "Alder", category: "domestic", janka: 590, grain: "closed", oil: "low",
+    notes: "Very forgiving and easy to engrave — uses a lighter cleanup pass.",
+    std: { fs: 315, fmax: 26, fmin: 26 }, drk: { fs: 305, fmax: 28, fmin: 28 }, edge: { emax: 18, emin: 16 } },
+  { name: "White Ash", category: "domestic", janka: 1320, grain: "open", oil: "low",
+    notes: "Open grain; behaves close to oak. Good grain-direction test candidate.",
+    std: { fs: 295, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Birch", category: "domestic", janka: 1260, grain: "closed", oil: "low",
+    notes: "Light color makes contrast easy.",
+    std: { fs: 295, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Beech", category: "domestic", janka: 1300, grain: "closed", oil: "low",
+    notes: "Tight grain, consistent results.",
+    std: { fs: 295, fmax: 30, fmin: 30 }, drk: { fs: 280, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Hickory / Pecan", category: "domestic", janka: 1820, grain: "open", oil: "low",
+    notes: "Very hard; needs more energy.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 270, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Poplar", category: "domestic", janka: 540, grain: "closed", oil: "low",
+    notes: "Engraves very easily — lighter cleanup line power recommended.",
+    std: { fs: 325, fmax: 24, fmin: 24 }, drk: { fs: 315, fmax: 26, fmin: 26 }, edge: { emax: 18, emin: 16 } },
+  { name: "Cypress", category: "domestic", janka: 510, grain: "open", oil: "low", tone: "light",
+    notes: "Softwood — engrave LIGHTER than hardwoods; let contrast come from texture, not depth. Uneven/stringy grain burns blotchy (earlywood vs latewood darken very differently). Keep power at/under ~26% and speed at/above ~300; avoid slow speeds and heavy multi-pass fills (they cause fuzzy edges and washed-out detail). If a fill looks blotchy, open the line interval to 0.12. Best for large lettering, rustic/outdoor signage, and decorative icons — NOT fine detail, photo fills, or deep dark engraves. Masking/tape works well, and cypress is stronger at vector/lettering than at raster fills (~3/5 overall). Standard Fill 350/24, Dark Fill 325/24 are both intentionally light. Tell me if it's old-growth vs modern or clear vs knotty and these can be tightened further.",
+    std: { fs: 350, fmax: 24, fmin: 24 }, drk: { fs: 325, fmax: 24, fmin: 24 }, edge: { emax: 18, emin: 16 } },
+
+  // ---------- EXOTICS ----------
+  { name: "Teak", category: "exotic", janka: 1070, grain: "open", oil: "high",
+    notes: "Oily — start conservative; oils can affect contrast.",
+    std: { fs: 295, fmax: 30, fmin: 30 }, drk: { fs: 285, fmax: 32, fmin: 32 }, edge: { emax: 20, emin: 18 } },
+  { name: "Wenge", category: "exotic", janka: 1930, grain: "open", oil: "low",
+    notes: "Very dark naturally; can be hard to see contrast.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 270, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Padauk", category: "exotic", janka: 1725, grain: "open", oil: "low",
+    notes: "Bright orange/red; engraving gives strong contrast.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 270, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Purpleheart", category: "exotic", janka: 2520, grain: "closed", oil: "low",
+    notes: "Very hard; surface oxidizes purple over time.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 270, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Zebrawood", category: "exotic", janka: 1830, grain: "open", oil: "low",
+    notes: "Strong striping pattern affects engraving look.",
+    std: { fs: 285, fmax: 32, fmin: 32 }, drk: { fs: 270, fmax: 34, fmin: 34 }, edge: { emax: 20, emin: 18 } },
+  { name: "Bubinga", category: "exotic", janka: 2410, grain: "closed", oil: "low",
+    notes: "Very dense; needs more energy.",
+    std: { fs: 275, fmax: 34, fmin: 34 }, drk: { fs: 265, fmax: 36, fmin: 36 }, edge: { emax: 20, emin: 18 } },
+  { name: "Jatoba (Brazilian Cherry)", category: "exotic", janka: 2350, grain: "closed", oil: "low",
+    notes: "Very hard, similar feel to Bubinga.",
+    std: { fs: 275, fmax: 34, fmin: 34 }, drk: { fs: 265, fmax: 36, fmin: 36 }, edge: { emax: 20, emin: 18 } },
+  { name: "Ipe", category: "exotic", janka: 3680, grain: "closed", oil: "high",
+    notes: "Extremely dense; watch for surface scorching.",
+    std: { fs: 270, fmax: 36, fmin: 36 }, drk: { fs: 260, fmax: 38, fmin: 38 }, edge: { emax: 20, emin: 18 } },
+];
+
+// =========================================================================
+// PERSISTENCE
+// =========================================================================
+function normalizeWood(w) {
+  if (!w || typeof w !== 'object' || typeof w.name !== 'string' || !w.name.trim()) return null;
+  w.janka = Number.isFinite(+w.janka) ? +w.janka : 1200;
+  w.grain = (w.grain === 'open' || w.grain === 'closed') ? w.grain : 'open';
+  w.oil = (w.oil === 'low' || w.oil === 'medium' || w.oil === 'high') ? w.oil : 'low';
+  if (w.tone !== 'light' && w.tone !== 'medium' && w.tone !== 'dark') delete w.tone;
+  w.category = w.category || 'custom';
+  if (typeof w.notes !== 'string') w.notes = w.notes ? String(w.notes) : '';
+  const num = (v, d) => Number.isFinite(+v) ? +v : d;
+  w.std  = w.std  && typeof w.std  === 'object' ? w.std  : {};
+  w.drk  = w.drk  && typeof w.drk  === 'object' ? w.drk  : {};
+  w.edge = w.edge && typeof w.edge === 'object' ? w.edge : {};
+  w.std  = { fs: num(w.std.fs, 290),  fmax: num(w.std.fmax, 30),  fmin: num(w.std.fmin, 30) };
+  w.drk  = { fs: num(w.drk.fs, 280),  fmax: num(w.drk.fmax, 32),  fmin: num(w.drk.fmin, 32) };
+  w.edge = { emax: num(w.edge.emax, 20), emin: num(w.edge.emin, 18) };
+  return w;
+}
+function loadCustomWoods() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('customWoods') || '[]');
+    if (!Array.isArray(stored)) return;
+    stored.forEach(w => { const n = normalizeWood(w); if (n) { n.isCustom = true; WOODS.push(n); } });
+  } catch (e) { console.warn('Could not load custom woods', e); }
+}
+function saveCustomWoods() {
+  localStorage.setItem('customWoods', JSON.stringify(WOODS.filter(w => w.isCustom)));
+}
+function getRemovedDefaults() {
+  try { return JSON.parse(localStorage.getItem('removedDefaults') || '[]'); } catch (e) { return []; }
+}
+function saveRemovedDefaults(list) { localStorage.setItem('removedDefaults', JSON.stringify(list)); }
+
+const ORIGINAL_DEFAULTS = {};
+WOODS.forEach(w => { ORIGINAL_DEFAULTS[w.name] = { std: { ...w.std }, drk: { ...w.drk }, edge: { ...w.edge }, notes: w.notes }; });
+
+function loadEdits() {
+  try {
+    const edits = JSON.parse(localStorage.getItem('woodEdits') || '{}');
+    Object.keys(edits).forEach(name => {
+      const w = WOODS.find(x => x.name === name);
+      if (!w) return;
+      const e = edits[name];
+      if (e.std) w.std = { ...w.std, ...e.std };
+      if (e.drk) w.drk = { ...w.drk, ...e.drk };
+      if (e.edge) w.edge = { ...w.edge, ...e.edge };
+      if (typeof e.notes === 'string') w.notes = e.notes;
+      if (!w.isCustom) w.isEdited = true;
+    });
+  } catch (e) { console.warn('Could not load wood edits', e); }
+}
+function saveEditFor(name, std, drk, edge, notes) {
+  let edits = {};
+  try { edits = JSON.parse(localStorage.getItem('woodEdits') || '{}'); } catch (e) {}
+  edits[name] = { std, drk, edge, notes };
+  localStorage.setItem('woodEdits', JSON.stringify(edits));
+}
+function clearEditFor(name) {
+  let edits = {};
+  try { edits = JSON.parse(localStorage.getItem('woodEdits') || '{}'); } catch (e) {}
+  delete edits[name];
+  localStorage.setItem('woodEdits', JSON.stringify(edits));
+}
+
+// =========================================================================
+// CALCULATION — find similar woods, weight-average fill + edge
+// =========================================================================
+function calculateSettings(janka, grain, oil) {
+  const scored = WOODS.filter(w => !w.isCustom).map(w => {
+    const jankaScore = 1 / (1 + Math.abs(w.janka - janka) / 500);
+    const grainScore = w.grain === grain ? 1 : 0.4;
+    const oilLevels = { low: 0, medium: 1, high: 2 };
+    const oilDiff = Math.abs(oilLevels[w.oil] - oilLevels[oil]);
+    const oilScore = oilDiff === 0 ? 1 : (oilDiff === 1 ? 0.6 : 0.3);
+    return { wood: w, score: jankaScore * 0.60 + grainScore * 0.25 + oilScore * 0.15 };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, 4);
+  const totalWeight = top.reduce((s, x) => s + x.score, 0);
+  const wAvg = getter => top.reduce((s, x) => s + getter(x.wood) * x.score, 0) / totalWeight;
+  const r5 = v => Math.round(v / 5) * 5;
+  const r1 = v => Math.round(v);
+  return {
+    std:  { fs: r5(wAvg(w => w.std.fs)), fmax: r1(wAvg(w => w.std.fmax)), fmin: r1(wAvg(w => w.std.fmin)) },
+    drk:  { fs: r5(wAvg(w => w.drk.fs)), fmax: r1(wAvg(w => w.drk.fmax)), fmin: r1(wAvg(w => w.drk.fmin)) },
+    edge: { emax: r1(wAvg(w => w.edge.emax)), emin: r1(wAvg(w => w.edge.emin)) },
+    similarWoods: top.map(x => `${x.wood.name} (${(x.score * 100).toFixed(0)}% match)`)
+  };
+}
+
+// =========================================================================
+// RENDER
+// =========================================================================
+
+function renderVectorEngraving() {
+  const V = CONST.vector;
+  const presetBlock = (title, p, star, desc) => `
+    <div class="info-block">
+      <div class="ib-title">${title}${star ? ' ★' : ''}</div>
+      <div class="ib-row"><span class="k">Speed</span><span class="v">${p.s} mm/s</span></div>
+      <div class="ib-row"><span class="k">Max / Min</span><span class="v">${adjP(p.max)}% / ${adjP(p.min)}%</span></div>
+      <div class="ib-row"><span class="k">Passes / Kerf</span><span class="v">1 / 0.00</span></div>
+      <div style="font-size:11px; color:#aab; margin-top:6px; line-height:1.5;">${desc}</div>
+    </div>`;
+  document.getElementById('vectorEngravingBody').innerHTML = `
+    <p style="font-size:12px; margin-bottom:10px;">Unlike fills, these passes are <strong>the same for every wood</strong> — they control how <strong>visible</strong> a stroke is, not how deep. Use them to replace thin line-lettering that's hard to read at a distance. Power shown for <strong>${selectedWattage} W</strong>.</p>
+    <div class="info-grid">
+      ${presetBlock('Light Vector — Visible but Shallow', V.light, true, 'Go-to for 1–2&Prime; letters &amp; visible icons. Barely scratches the surface, still reads from a distance, won\'t compete with dark fills.')}
+      ${presetBlock('Even Lighter', V.lighter, false, 'When the fill is very dark and you want refined, subtle lettering.')}
+      ${presetBlock('Stronger (Distance)', V.stronger, false, 'Readable across a room, busy grain, or thin fonts. Still shallow — not a fill.')}
+    </div>
+    <p style="font-size:11px; font-style:italic; margin-top:8px; color:#bcd;">Still too thin? Run the <strong>same</strong> pass twice — two light passes beat one heavy pass. Don't raise power above ~26–27%.</p>
+    <div class="info-grid" style="grid-template-columns:1fr 1fr; margin-top:12px;">
+      <div class="info-block" style="border-left:3px solid #27ae60;">
+        <div class="ib-title" style="color:#27ae60;">&#10003; Use for</div>
+        <div style="font-size:12px; color:#cdd; line-height:1.6;">Letters &middot; icons &amp; symbols &middot; logos without fill &middot; decorative lines &middot; dividers/borders not touching a fill &middot; line art meant to read from a distance</div>
+      </div>
+      <div class="info-block" style="border-left:3px solid #e74c3c;">
+        <div class="ib-title" style="color:#e74c3c;">&#10007; Don't use for</div>
+        <div style="font-size:12px; color:#cdd; line-height:1.6;">Edge cleanup around fills &middot; outlines sitting against a fill edge &middot; invisible polishing or alignment passes — those use each wood's <strong>Edge Sharpening</strong> pass.</div>
+      </div>
+    </div>
+    <div class="info-grid" style="grid-template-columns:1fr 1fr; margin-top:12px;">
+      <div class="info-block">
+        <div class="ib-title">Run order (when fills are involved)</div>
+        <div style="font-size:12px; color:#cdd; line-height:1.8;">1. Fill (default or dark)<br>2. Vector — letters, icons, lines<br>3. Edge lines &amp; cleanup (${CONST.edgeSpeed} / ${adjP(20)} / ${adjP(18)}) <strong>(last)</strong></div>
+      </div>
+      <div class="info-block">
+        <div class="ib-title">Which pass?</div>
+        <div style="font-size:12px; color:#cdd; line-height:1.8;">Depth &amp; mass &rarr; <strong>Fill</strong><br>Clean a fill edge &rarr; <strong>Edge sharpening</strong><br>Readable but shallow &rarr; <strong>${V.light.s} / ${adjP(V.light.max)} / ${adjP(V.light.min)}</strong><br>Strong emphasis &rarr; <strong>Bold line ${CONST.boldLine.s} / ${adjP(CONST.boldLine.max)} / ${adjP(CONST.boldLine.min)}</strong></div>
+      </div>
+    </div>`;
+}
+
+function populateDropdown() {
+  const sel = document.getElementById('woodSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select a wood —</option><option value="ALL">Show All Woods</option>';
+  const removed = getRemovedDefaults();
+  WOODS.filter(w => w.isCustom || !removed.includes(w.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .forEach(w => {
+      const opt = document.createElement('option');
+      opt.value = w.name;
+      opt.textContent = w.name + (w.isCustom ? ' (Custom)' : '');
+      sel.appendChild(opt);
+    });
+  const stillExists = Array.from(sel.options).some(o => o.value === current);
+  sel.value = stillExists ? current : 'ALL';
+  document.getElementById('restoreWrap').style.display = removed.length > 0 ? '' : 'none';
+}
+
+function renderWoods() {
+  const selected = document.getElementById('woodSelect').value;
+  const list = document.getElementById('woodList');
+  list.innerHTML = '';
+  if (selected === '') {
+    list.innerHTML = '<div class="wood-card"><p style="color:#aab;">Select a wood type above to view its engraving settings.</p></div>';
+    return;
+  }
+  const removed = getRemovedDefaults();
+  let woods = WOODS.filter(w => w.isCustom || !removed.includes(w.name));
+  if (selected !== 'ALL') woods = woods.filter(w => w.name === selected);
+  woods.sort((a, b) => a.name.localeCompare(b.name));
+  if (woods.length === 0) {
+    list.innerHTML = '<div class="wood-card"><p style="color:#aab;">No woods to show.</p></div>';
+    return;
+  }
+  woods.forEach(w => {
+    try {
+      list.appendChild(makeWoodCard(w));
+    } catch (e) {
+      console.warn('Skipped a wood that failed to render:', w && w.name, e);
+      const errCard = document.createElement('div');
+      errCard.className = 'wood-card';
+      errCard.innerHTML = `<p style="color:#e74c3c;">Could not display "${(w && w.name) || 'unknown'}" (corrupt data) — skipped.</p>`;
+      list.appendChild(errCard);
+    }
+  });
+}
+
+function fillBox(title, cls, tag, s) {
+  return `
+    <div class="preset-box ${cls}">
+      <div class="preset-title"><span>${title}</span><span class="tag ${tag}">${cls === 'standard' ? 'STD' : 'DARK'}</span></div>
+      <div class="setting-row"><span class="k">Speed</span><span class="v">${s.fs} mm/s</span></div>
+      <div class="setting-row"><span class="k">Max Power</span><span class="v">${adjP(s.fmax)}%</span></div>
+      <div class="setting-row"><span class="k">Min Power</span><span class="v">${adjP(s.fmin)}%</span></div>
+      <div class="setting-row"><span class="k">Line Interval</span><span class="v">${CONST.interval}</span></div>
+      <div class="setting-row"><span class="k">Lines / Inch</span><span class="v">${CONST.lpi}</span></div>
+    </div>`;
+}
+
+function edgePanel(w) {
+  return `
+    <div class="edge-panel">
+      <div class="ep-title"><span>Outlines, Edge Sharpening &amp; Advanced Edge</span><span class="tag">KERF 0.00 · 1 PASS</span></div>
+      <div class="edge-cols">
+        <div class="edge-sub">
+          <div class="es-label">Standard Line <span class="tip" tabindex="0">i<span class="tip-body"><strong>Clean outline at normal weight.</strong> Use for letter outlines, borders, and any line meant to read as one crisp stroke. It runs slower than a fill so the line stays sharp and dark instead of washing out.</span></span></div>
+          <div class="setting-row"><span class="k">Speed</span><span class="v">${CONST.stdLine.s} mm/s</span></div>
+          <div class="setting-row"><span class="k">Max / Min</span><span class="v">${adjP(CONST.stdLine.max)}% / ${adjP(CONST.stdLine.min)}%</span></div>
+        </div>
+        <div class="edge-sub">
+          <div class="es-label">Bold Line <span class="tip" tabindex="0">i<span class="tip-body"><strong>Heavier version of the standard line.</strong> A little slower with more power, so the stroke comes out thicker and darker. Use it when a border or divider needs to stand out, or on busy grain where a thin line would disappear.</span></span></div>
+          <div class="setting-row"><span class="k">Speed</span><span class="v">${CONST.boldLine.s} mm/s</span></div>
+          <div class="setting-row"><span class="k">Max / Min</span><span class="v">${adjP(CONST.boldLine.max)}% / ${adjP(CONST.boldLine.min)}%</span></div>
+        </div>
+        <div class="edge-sub">
+          <div class="es-label">Edge Sharpening Trick <span class="tip" tabindex="0">i<span class="tip-body" style="width:320px;"><strong>The cleanup pass that makes a fill look professional.</strong> After a fill, the border between burned and bare wood often looks soft, fuzzy, or fibrous. A fast, low-power pass run right along that border re-burns <strong>only the edge</strong> — it removes the fuzz and crisps and darkens the outline so the fill reads as sharp and intentional. The fast speed (${CONST.edgeSpeed} mm/s) keeps it from digging a groove; the power is tuned per wood so it cleans up without scorching. Run it <strong>after</strong> the fill and lettering — never instead of a fill.</span></span></div>
+          <div class="setting-row"><span class="k">Speed</span><span class="v">${CONST.edgeSpeed} mm/s</span></div>
+          <div class="setting-row"><span class="k">Max / Min</span><span class="v">${adjP(w.edge.emax)}% / ${adjP(w.edge.emin)}%</span></div>
+        </div>
+        <div class="edge-sub">
+          <div class="es-label">Advanced Edge (2-pass) <span class="tip" tabindex="0">i<span class="tip-body"><strong>For the crispest possible boundary.</strong> Pass 1 is the same Edge Sharpening pass; Pass 2 is a second, lighter and faster polish (${CONST.advPass2.s} / ${adjP(CONST.advPass2.max)} / ${adjP(CONST.advPass2.min)}) that knocks down any leftover fuzz and evens the tone. Use it on premium pieces or when a single pass isn't clean enough — skip it for everyday work.</span></span></div>
+          <div class="es-pass">Pass 1</div>
+          <div class="setting-row"><span class="k">Speed / Max / Min</span><span class="v">${CONST.edgeSpeed} / ${adjP(w.edge.emax)} / ${adjP(w.edge.emin)}</span></div>
+          <div class="es-pass">Pass 2</div>
+          <div class="setting-row"><span class="k">Speed / Max / Min</span><span class="v">${CONST.advPass2.s} / ${adjP(CONST.advPass2.max)} / ${adjP(CONST.advPass2.min)}</span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function vectorStep() {
+  const v = CONST.vector.light;
+  return `
+    <div class="edge-panel" style="border-top-color:#9b59b6;">
+      <div class="ep-title"><span>Light Vector — recommended ★</span><span class="tag" style="background:#9b59b6;">SAME FOR ALL WOODS</span></div>
+      <div class="edge-cols">
+        <div class="edge-sub" style="border-left:3px solid #9b59b6;">
+          <div class="es-label" style="color:#c39bd3;">Letters &amp; Visible Elements</div>
+          <div class="setting-row"><span class="k">Speed</span><span class="v">${v.s} mm/s</span></div>
+          <div class="setting-row"><span class="k">Max / Min</span><span class="v">${adjP(v.max)}% / ${adjP(v.min)}%</span></div>
+          <div class="setting-row"><span class="k">Passes / Kerf</span><span class="v">1 / 0.00</span></div>
+        </div>
+        <div class="edge-sub" style="display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#bcd; line-height:1.5; margin-bottom:10px;">Visible-but-shallow strokes for letters, icons &amp; line art. Two lighter presets are available for very dark fills or distance readability.</div>
+          <button class="secondary" style="background:#5b3a78; padding:8px 12px; font-size:12px;" onclick="openVectorModal()">All vector presets &amp; tips →</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function makeWoodCard(w) {
+  const card = document.createElement('div');
+  card.className = 'wood-card' + (w.isCustom ? ' custom' : '');
+  const catLabel = { domestic: 'Domestic', exotic: 'Exotic', custom: 'Custom' }[w.category] || w.category;
+  const esc = w.name.replace(/'/g, "\\'");
+  const tone = getTone(w);
+  const ts = TONE_STRATEGY[tone];
+  card.innerHTML = `
+    <div class="wood-header">
+      <div class="wood-name">${w.name}</div>
+      <div class="wood-meta">
+        <span class="badge">${catLabel}</span>
+        ${w.isCustom ? '<span class="badge custom">Custom</span>' : ''}
+        ${w.calculated ? '<span class="badge calculated">Auto-Calculated</span>' : ''}
+        ${w.isEdited ? '<span class="badge" style="background:#f39c12;">Edited</span>' : ''}
+      </div>
+    </div>
+    <div class="characteristics">
+      <div><strong>Janka:</strong> ${w.janka} lbf</div>
+      <div><strong>Grain:</strong> ${w.grain === 'open' ? 'Open/Porous' : 'Closed/Tight'}</div>
+      <div><strong>Oil:</strong> ${w.oil.charAt(0).toUpperCase() + w.oil.slice(1)}</div>
+      <div><strong style="color:${ts.color};">Tone:</strong> ${ts.label}</div>
+    </div>
+
+    <div class="workflow-step">
+      <div class="step-head">
+        <span class="step-num">1</span>
+        <span class="step-title">Fill <span class="step-sub">— wood-specific · engrave first</span></span>
+        <span class="tip" tabindex="0">i<span class="tip-body"><strong>Contrast comes from control, not depth.</strong> Light woods (oak, maple) take a <strong>darker</strong> fill — darkness makes the contrast. Medium woods (sapele, mahogany) want a <strong>moderate</strong> fill. Dark woods (walnut, wenge, ipe) take a <strong>lighter</strong> fill — over-burning flattens them; let the edge &amp; lettering carry the contrast.</span></span>
+      </div>
+      <div class="fill-strategy" style="border-left-color:${ts.color};">
+        <span class="fs-tag" style="background:${ts.color};">${ts.label} wood</span>${ts.text}
+      </div>
+      <div class="fill-grid">
+        ${fillBox('Standard Fill', 'standard', 'green', w.std)}
+        ${fillBox('Dark Fill', 'darker', 'red', w.drk)}
+      </div>
+    </div>
+
+    <div class="step-divider"></div>
+
+    <div class="workflow-step">
+      <div class="step-head">
+        <span class="step-num vec">2</span>
+        <span class="step-title">Vector — Letters &amp; Visible Elements <span class="step-sub">— same for every wood</span></span>
+      </div>
+      ${vectorStep()}
+    </div>
+
+    <div class="step-divider"></div>
+
+    <div class="workflow-step" style="margin-bottom:0;">
+      <div class="step-head">
+        <span class="step-num edge">3</span>
+        <span class="step-title">Edge &amp; Lines <span class="step-sub">— run last</span></span>
+      </div>
+      ${edgePanel(w)}
+    </div>
+
+    ${w.similarWoods ? `<div class="notes"><strong style="color:#27ae60;">Calculated from:</strong> ${w.similarWoods.join(', ')}</div>` : ''}
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button onclick="openEditModal('${esc}')">Edit Settings</button>
+      <button class="secondary" onclick="openNotesModal('${esc}')">Notes${w.notes ? ' •' : ''}</button>
+      <button class="danger" onclick="removeWood('${esc}')">Remove This Wood</button>
+    </div>`;
+  return card;
+}
+
+// =========================================================================
+// EDIT
+// =========================================================================
+let editingWoodName = null;
+function openEditModal(name) {
+  const w = WOODS.find(x => x.name === name);
+  if (!w) return;
+  editingWoodName = name;
+  document.getElementById('editModalTitle').textContent = 'Edit Settings — ' + name;
+  document.getElementById('editStdFs').value = w.std.fs;
+  document.getElementById('editStdFmax').value = w.std.fmax;
+  document.getElementById('editStdFmin').value = w.std.fmin;
+  document.getElementById('editDrkFs').value = w.drk.fs;
+  document.getElementById('editDrkFmax').value = w.drk.fmax;
+  document.getElementById('editDrkFmin').value = w.drk.fmin;
+  document.getElementById('editEmax').value = w.edge.emax;
+  document.getElementById('editEmin').value = w.edge.emin;
+  document.getElementById('resetBtn').style.display = (!w.isCustom && w.isEdited) ? '' : 'none';
+  document.getElementById('editModal').classList.add('active');
+}
+function closeEditModal() { document.getElementById('editModal').classList.remove('active'); editingWoodName = null; }
+function saveEdit() {
+  if (!editingWoodName) return;
+  const w = WOODS.find(x => x.name === editingWoodName);
+  if (!w) return;
+  const std = { fs: +document.getElementById('editStdFs').value, fmax: +document.getElementById('editStdFmax').value, fmin: +document.getElementById('editStdFmin').value };
+  const drk = { fs: +document.getElementById('editDrkFs').value, fmax: +document.getElementById('editDrkFmax').value, fmin: +document.getElementById('editDrkFmin').value };
+  const edge = { emax: +document.getElementById('editEmax').value, emin: +document.getElementById('editEmin').value };
+  const all = [std.fs, std.fmax, std.fmin, drk.fs, drk.fmax, drk.fmin, edge.emax, edge.emin];
+  if (all.some(v => isNaN(v) || v < 0)) { alert('All values must be valid non-negative numbers.'); return; }
+  w.std = std; w.drk = drk; w.edge = edge;
+  if (w.isCustom) { saveCustomWoods(); }
+  else { w.isEdited = true; saveEditFor(editingWoodName, std, drk, edge, w.notes); }
+  closeEditModal();
+  renderWoods();
+}
+function resetWoodToDefault() {
+  if (!editingWoodName) return;
+  const orig = ORIGINAL_DEFAULTS[editingWoodName];
+  if (!orig) return;
+  if (!confirm(`Reset "${editingWoodName}" to the original built-in settings?`)) return;
+  const w = WOODS.find(x => x.name === editingWoodName);
+  w.std = { ...orig.std }; w.drk = { ...orig.drk }; w.edge = { ...orig.edge }; w.notes = orig.notes;
+  w.isEdited = false; clearEditFor(editingWoodName);
+  closeEditModal();
+  renderWoods();
+}
+
+// =========================================================================
+// NOTES
+// =========================================================================
+let notesWoodName = null;
+function openNotesModal(name) {
+  const w = WOODS.find(x => x.name === name);
+  if (!w) return;
+  notesWoodName = name;
+  document.getElementById('notesModalTitle').textContent = 'Notes — ' + name;
+  document.getElementById('notesText').value = w.notes || '';
+  document.getElementById('notesModal').classList.add('active');
+}
+function closeNotesModal() { document.getElementById('notesModal').classList.remove('active'); notesWoodName = null; }
+function saveNotes() {
+  if (!notesWoodName) return;
+  const w = WOODS.find(x => x.name === notesWoodName);
+  if (!w) return;
+  w.notes = document.getElementById('notesText').value.trim();
+  if (w.isCustom) { saveCustomWoods(); }
+  else { w.isEdited = true; saveEditFor(notesWoodName, w.std, w.drk, w.edge, w.notes); }
+  closeNotesModal();
+  renderWoods();
+}
+
+// =========================================================================
+// VECTOR MODAL
+// =========================================================================
+function openVectorModal() { document.getElementById('vectorModal').classList.add('active'); }
+function closeVectorModal() { document.getElementById('vectorModal').classList.remove('active'); }
+
+// =========================================================================
+// ADD
+// =========================================================================
+function openAddModal() {
+  document.getElementById('addModal').classList.add('active');
+  document.getElementById('newName').value = '';
+  document.getElementById('newJanka').value = '';
+  document.getElementById('newNotes').value = '';
+  document.getElementById('newTone').value = 'medium';
+  document.getElementById('calcPreview').style.display = 'none';
+}
+function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
+function updatePreview() {
+  const janka = parseInt(document.getElementById('newJanka').value);
+  const grain = document.getElementById('newGrain').value;
+  const oil = document.getElementById('newOil').value;
+  const preview = document.getElementById('calcPreview');
+  if (!janka || janka < 100) { preview.style.display = 'none'; return; }
+  const r = calculateSettings(janka, grain, oil);
+  preview.innerHTML = `
+    <strong>Calculated Preview:</strong><br>
+    <strong>Standard Fill:</strong> ${r.std.fs} mm/s @ ${r.std.fmax}%<br>
+    <strong>Dark Fill:</strong> ${r.drk.fs} mm/s @ ${r.drk.fmax}%<br>
+    <strong>Edge Sharpening:</strong> ${CONST.edgeSpeed} mm/s @ ${r.edge.emax}% / ${r.edge.emin}%<br>
+    <em>Based on:</em> ${r.similarWoods.join(', ')}`;
+  preview.style.display = 'block';
+}
+function addNewWood() {
+  const name = document.getElementById('newName').value.trim();
+  const janka = parseInt(document.getElementById('newJanka').value);
+  const grain = document.getElementById('newGrain').value;
+  const oil = document.getElementById('newOil').value;
+  const tone = document.getElementById('newTone').value;
+  const category = document.getElementById('newCategory').value;
+  const notes = document.getElementById('newNotes').value.trim();
+  if (!name) { alert('Please enter a wood name.'); return; }
+  if (!janka || janka < 100) { alert('Please enter a valid Janka hardness (typical range 400-4000).'); return; }
+  if (WOODS.find(w => w.name.toLowerCase() === name.toLowerCase())) { alert('A wood with that name already exists.'); return; }
+  const r = calculateSettings(janka, grain, oil);
+  WOODS.push({
+    name, category, janka, grain, oil, tone,
+    notes: notes || `Auto-calculated from: ${r.similarWoods.slice(0, 2).join(' and ')}.`,
+    std: r.std, drk: r.drk, edge: r.edge,
+    isCustom: true, calculated: true, similarWoods: r.similarWoods
+  });
+  saveCustomWoods();
+  populateDropdown();
+  document.getElementById('woodSelect').value = name;
+  renderWoods();
+  closeAddModal();
+}
+
+// =========================================================================
+// REMOVE / RESTORE
+// =========================================================================
+function removeWood(name) {
+  const wood = WOODS.find(w => w.name === name);
+  if (!wood) return;
+  if (!confirm(`Remove "${name}" from your inventory?${wood.isCustom ? '' : '\n\nThis is a built-in wood — you can restore it later with the "Restore Removed Woods" button.'}`)) return;
+  if (wood.isCustom) {
+    const idx = WOODS.findIndex(w => w.name === name);
+    if (idx >= 0) WOODS.splice(idx, 1);
+    saveCustomWoods();
+  } else {
+    const removed = getRemovedDefaults();
+    if (!removed.includes(name)) { removed.push(name); saveRemovedDefaults(removed); }
+  }
+  document.getElementById('woodSelect').value = 'ALL';
+  populateDropdown();
+  renderWoods();
+}
+function restoreRemoved() {
+  const removed = getRemovedDefaults();
+  if (removed.length === 0) return;
+  if (!confirm(`Restore all ${removed.length} removed built-in wood(s)?`)) return;
+  saveRemovedDefaults([]);
+  populateDropdown();
+  renderWoods();
+}
+
+// =========================================================================
+// INIT
+// =========================================================================
+loadCustomWoods();
+loadEdits();
+loadWattage();
+document.getElementById('wattSelect').value = selectedWattage;
+populateDropdown();
+renderVectorEngraving();
+renderWoods();
+</script>
+</body>
+</html>
